@@ -1,6 +1,8 @@
 import pkg/stint
 import pkg/upraises
 
+export stint
+
 push: {.upraises:[].}
 
 type
