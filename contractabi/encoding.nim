@@ -1,5 +1,6 @@
 import pkg/stint
 import pkg/upraises
+import pkg/stew/byteutils
 
 export stint
 
@@ -109,6 +110,9 @@ func encode[T](encoder: var AbiEncoder, value: seq[T]) =
     encoder.write(element)
   encoder.finishTuple()
   encoder.setDynamic()
+
+func encode(encoder: var AbiEncoder, value: string) =
+  encoder.encode(value.toBytes)
 
 func write*[T](encoder: var AbiEncoder, value: T) =
   var writer = AbiEncoder.init()

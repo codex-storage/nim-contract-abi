@@ -1,6 +1,7 @@
 
 import std/unittest
 import pkg/stint
+import pkg/stew/byteutils
 import contractabi
 import ./examples
 
@@ -153,6 +154,9 @@ suite "ABI encoding":
     check encoder.finish() ==
       AbiEncoder.encode(32'u8) & # offset in tuple
       AbiEncoder.encode(a)
+
+  test "encodes strings as UTF-8 byte sequence":
+    check AbiEncoder.encode("hello!☺") == AbiEncoder.encode("hello!☺".toBytes)
 
 # https://medium.com/b2expand/abi-encoding-explanation-4f470927092d
 # https://docs.soliditylang.org/en/v0.8.1/abi-spec.html#formal-specification-of-the-encoding
