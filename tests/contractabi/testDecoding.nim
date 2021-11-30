@@ -186,3 +186,12 @@ suite "ABI decoding":
     decoder.finishTuple()
     decoder.finish()
 
+  test "decodes sequences":
+    checkDecode(@[seq[byte].example, seq[byte].example])
+
+  test "decodes arrays with static elements":
+    checkDecode([array[32, byte].example, array[32, byte].example])
+
+  test "decodes arrays with dynamic elements":
+    checkDecode([seq[byte].example, seq[byte].example])
+

@@ -171,5 +171,11 @@ suite "ABI encoding":
   test "encodes strings as UTF-8 byte sequence":
     check AbiEncoder.encode("hello!☺") == AbiEncoder.encode("hello!☺".toBytes)
 
+  test "can determine whether types are dynamic or static":
+    check static AbiEncoder.isStatic(uint8)
+    check static AbiEncoder.isDynamic(seq[byte])
+    check static AbiEncoder.isStatic(array[2, array[2, byte]])
+    check static AbiEncoder.isDynamic(array[2, seq[byte]])
+
 # https://medium.com/b2expand/abi-encoding-explanation-4f470927092d
 # https://docs.soliditylang.org/en/v0.8.1/abi-spec.html#formal-specification-of-the-encoding

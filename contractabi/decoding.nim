@@ -1,6 +1,7 @@
 import pkg/stint
 import pkg/stew/endians2
 import pkg/upraises
+import ./encoding
 
 push: {.upraises:[].}
 
@@ -92,6 +93,20 @@ func finish*(decoder: var AbiDecoder) =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
   doAssert decoder.index == decoder.bytes.len, "unread trailing bytes found"
   doAssert decoder.index mod 32 == 0, "encoding variant broken"
+
+func read*[T](decoder: var AbiDecoder, _: type seq[T]): seq[T] =
+  let len = decoder.read(uint64)
+  decoder.startTuple(dynamic=true)
+  for _ in 0..<len:
+    result.add(decoder.read(T))
+  decoder.finishTuple()
+
+func read*[I,T](decoder: var AbiDecoder, _: type array[I,T]): array[I,T] =
+  const dynamic = AbiEncoder.isDynamic(T)
+  decoder.startTuple(dynamic)
+  for i in 0..<result.len:
+    result[i] = decoder.read(T)
+  decoder.finishTuple()
 
 func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): T =
   var decoder = AbiDecoder.init(bytes)

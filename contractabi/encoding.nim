@@ -128,3 +128,11 @@ func encode*[T](_: type AbiEncoder, value: T): seq[byte] =
   var encoder = AbiEncoder.init()
   encoder.write(value)
   encoder.finish()
+
+proc isDynamic*(_: type AbiEncoder, T: type): bool {.compileTime.} =
+  var encoder = AbiEncoder.init()
+  encoder.encode(T.default)
+  encoder.stack[^1].dynamic
+
+proc isStatic*(_: type AbiEncoder, T: type): bool {.compileTime.} =
+  not AbiEncoder.isDynamic(T)
