@@ -106,6 +106,19 @@ suite "ABI encoding":
       AbiEncoder.encode(2 * 32'u8) & # offset of d in inner tuple
       AbiEncoder.encode(d)
 
+  test "encodes element after dynamic tuple":
+    let a = @[1'u8, 2'u8, 3'u8]
+    let b = 0xAABBCCDD'u32
+    var encoder= AbiEncoder.init()
+    encoder.startTuple()
+    encoder.write(a)
+    encoder.finishTuple()
+    encoder.write(b)
+    check encoder.finish() ==
+      AbiEncoder.encode(1 * 32'u8) & # offset of a in tuple
+      AbiEncoder.encode(a) &
+      AbiEncoder.encode(b)
+
   test "encodes arrays":
     let element1 = seq[byte].example
     let element2 = seq[byte].example
