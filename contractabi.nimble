@@ -1,4 +1,4 @@
-version = "0.1.1"
+version = "0.2.0"
 author = "Contract ABI Authors"
 description = "ABI Encoding for Ethereum contracts"
 license = "MIT"
