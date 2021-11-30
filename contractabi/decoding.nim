@@ -1,5 +1,6 @@
 import pkg/stint
 import pkg/stew/endians2
+import pkg/stew/byteutils
 import pkg/upraises
 import ./encoding
 
@@ -107,6 +108,9 @@ func read*[I,T](decoder: var AbiDecoder, _: type array[I,T]): array[I,T] =
   for i in 0..<result.len:
     result[i] = decoder.read(T)
   decoder.finishTuple()
+
+func read*(decoder: var AbiDecoder, T: type string): T =
+  string.fromBytes(decoder.read(seq[byte]))
 
 func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): T =
   var decoder = AbiDecoder.init(bytes)

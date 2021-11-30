@@ -195,3 +195,5 @@ suite "ABI decoding":
   test "decodes arrays with dynamic elements":
     checkDecode([seq[byte].example, seq[byte].example])
 
+  test "decodes strings":
+    checkDecode("hello!☺")
