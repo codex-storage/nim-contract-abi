@@ -33,6 +33,15 @@ AbiEncoder.encode(@[1'u8, 2'u8, 3'u8])
 
 # encode tuples
 AbiEncoder.encode( (42'u8, @[1'u8, 2'u8, 3'u8], true) )
+
+# decode values of different types
+AbiDecoder.decode(bytes, uint8)
+AbiDecoder.decode(bytes, UInt256)
+AbiDecoder.decode(bytes, array[3, uint8])
+AbiDecoder.decode(bytes, seq[uint8])
+
+# decode tuples
+AbiDecoder.decode(bytes, (uint32, bool, seq[byte]) )
 ```
 
 [1]: https://docs.soliditylang.org/en/latest/abi-spec.html
