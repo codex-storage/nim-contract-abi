@@ -68,86 +68,32 @@ suite "ABI decoding":
     let b = @[1'u8, 2'u8, 3'u8]
     let c = 0xAABBCCDD'u32
     let d = @[4'u8, 5'u8, 6'u8]
-    let encoding = AbiEncoder.encode( (a, b, c, d) )
-
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=true)
-    check decoder.read(bool) == a
-    check decoder.read(seq[byte]) == b
-    check decoder.read(uint32) == c
-    check decoder.read(seq[byte]) == d
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( (a, b, c, d) )
 
   test "decodes nested tuples":
     let a = true
     let b = @[1'u8, 2'u8, 3'u8]
     let c = 0xAABBCCDD'u32
     let d = @[4'u8, 5'u8, 6'u8]
-
-    let encoding = AbiEncoder.encode( (a, b, (c, d)) )
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=true)
-    check decoder.read(bool) == a
-    check decoder.read(seq[byte]) == b
-    decoder.startTuple(dynamic=true)
-    check decoder.read(uint32) == c
-    check decoder.read(seq[byte]) == d
-    decoder.finishTuple()
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( (a, b, (c, d)) )
 
   test "reads elements after dynamic tuple":
     let a = @[1'u8, 2'u8, 3'u8]
     let b = 0xAABBCCDD'u32
-    let encoding = AbiEncoder.encode( ((a,), b) )
-
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=true)
-    decoder.startTuple(dynamic=true)
-    check decoder.read(seq[byte]) == a
-    decoder.finishTuple()
-    check decoder.read(uint32) == b
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( ((a,), b) )
 
   test "reads elements after static tuple":
     let a = 0x123'u16
     let b = 0xAABBCCDD'u32
-    let encoding = AbiEncoder.encode( ((a,), b) )
-
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=false)
-    decoder.startTuple(dynamic=false)
-    check decoder.read(uint16) == a
-    decoder.finishTuple()
-    check decoder.read(uint32) == b
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( ((a,), b) )
 
   test "reads static tuple inside dynamic tuple":
     let a = @[1'u8, 2'u8, 3'u8]
     let b = 0xAABBCCDD'u32
-    let encoding = AbiEncoder.encode( (a, (b,)) )
-
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=true)
-    check decoder.read(seq[byte]) == a
-    decoder.startTuple(dynamic=false)
-    check decoder.read(uint32) == b
-    decoder.finishTuple()
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( (a, (b,)) )
 
   test "reads empty tuples":
-    let encoding = AbiEncoder.encode( ((),) )
-
-    var decoder = AbiDecoder.init(encoding)
-    decoder.startTuple(dynamic=false)
-    decoder.startTuple(dynamic=false)
-    decoder.finishTuple()
-    decoder.finishTuple()
-    decoder.finish()
+    checkDecode( ((),) )
 
   test "decodes sequences":
     checkDecode(@[seq[byte].example, seq[byte].example])

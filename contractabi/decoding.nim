@@ -84,7 +84,7 @@ func decode*(decoder: var AbiDecoder, T: type seq[byte]): T =
     let len = decoder.read(uint64).int
     decoder.read(len, padRight)
 
-func startTuple*(decoder: var AbiDecoder, dynamic: bool) =
+func startTuple(decoder: var AbiDecoder, dynamic: bool) =
   var start: int
   if decoder.currentTuple.dynamic and dynamic:
     start = decoder.readOffset()
@@ -92,11 +92,18 @@ func startTuple*(decoder: var AbiDecoder, dynamic: bool) =
     start = decoder.index
   decoder.stack.add(Tuple.init(start, dynamic))
 
-func finishTuple*(decoder: var AbiDecoder) =
+func finishTuple(decoder: var AbiDecoder) =
   doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
   let tupl = decoder.stack.pop()
   if not tupl.dynamic:
     decoder.index = tupl.index
+
+func decode*(decoder: var AbiDecoder, T: type tuple): T =
+  const dynamic = AbiEncoder.isDynamic(typeof(result))
+  decoder.startTuple(dynamic)
+  for element in result.fields:
+    element = decoder.read(typeof(element))
+  decoder.finishTuple()
 
 func finish*(decoder: var AbiDecoder) =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
