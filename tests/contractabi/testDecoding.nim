@@ -1,4 +1,5 @@
 import std/unittest
+import pkg/questionable/results
 import contractabi
 import ./examples
 
@@ -6,7 +7,7 @@ suite "ABI decoding":
 
   proc checkDecode[T](value: T) =
     let encoded = AbiEncoder.encode(value)
-    check AbiDecoder.decode(encoded, T) == value
+    check !AbiDecoder.decode(encoded, T) == value
 
   proc checkDecode(T: type) =
     checkDecode(T.example)
