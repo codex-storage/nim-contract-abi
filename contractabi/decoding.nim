@@ -9,30 +9,39 @@ push: {.upraises:[].}
 type
   AbiDecoder* = object
     bytes: seq[byte]
-    index: int
     stack: seq[Tuple]
+    last: int
   Tuple = object
     start: int
-    finish: int
+    index: int
     dynamic: bool
   Padding = enum
     padLeft,
     padRight
   UInt = SomeUnsignedInt | StUint
 
+func init(_: type Tuple, offset: int, dynamic: bool): Tuple =
+  Tuple(start: offset, index: offset, dynamic: dynamic)
+
 func init*(_: type AbiDecoder, bytes: seq[byte], offset=0): AbiDecoder =
-  AbiDecoder(bytes: bytes, index: offset, stack: @[Tuple()])
+  AbiDecoder(bytes: bytes, stack: @[Tuple.init(offset, dynamic=false)])
 
 func currentTuple(decoder: var AbiDecoder): var Tuple =
   decoder.stack[^1]
 
-func updateFinish(decoder: var AbiDecoder, index: int) =
-  if index > decoder.currentTuple.finish:
-    decoder.currentTuple.finish = index
+func index(decoder: var AbiDecoder): var int =
+  decoder.currentTuple.index
+
+func `index=`(decoder: var AbiDecoder, value: int) =
+  decoder.currentTuple.index = value
+
+func updateLast(decoder: var AbiDecoder, index: int) =
+  if index > decoder.last:
+    decoder.last = index
 
 func advance(decoder: var AbiDecoder, amount: int) =
   decoder.index += amount
-  decoder.updateFinish(decoder.index)
+  decoder.updateLast(decoder.index)
 
 func read(decoder: var AbiDecoder, amount: int, padding = padLeft): seq[byte] =
   let padlen = (32 - amount mod 32) mod 32
@@ -66,15 +75,14 @@ func readTail(decoder: var AbiDecoder, T: type seq[byte]): T =
   let offset = decoder.readOffset()
   var tailDecoder = AbiDecoder.init(decoder.bytes, offset)
   result = tailDecoder.read(T)
-  decoder.updateFinish(tailDecoder.index)
+  decoder.updateLast(tailDecoder.index)
 
 func decode*(decoder: var AbiDecoder, T: type seq[byte]): T =
   if decoder.currentTuple.dynamic:
     decoder.readTail(T)
   else:
     let len = decoder.read(uint64).int
-    let bytes = decoder.read(len, padRight)
-    bytes
+    decoder.read(len, padRight)
 
 func startTuple*(decoder: var AbiDecoder, dynamic: bool) =
   var start: int
@@ -82,19 +90,18 @@ func startTuple*(decoder: var AbiDecoder, dynamic: bool) =
     start = decoder.readOffset()
   else:
     start = decoder.index
-  decoder.stack.add(Tuple(start: start, finish: start, dynamic: dynamic))
-  decoder.index = decoder.currentTuple.start
+  decoder.stack.add(Tuple.init(start, dynamic))
 
 func finishTuple*(decoder: var AbiDecoder) =
   doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
   let tupl = decoder.stack.pop()
-  decoder.updateFinish(tupl.finish)
-  decoder.index = tupl.finish
+  if not tupl.dynamic:
+    decoder.index = tupl.index
 
 func finish*(decoder: var AbiDecoder) =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
-  doAssert decoder.index == decoder.bytes.len, "unread trailing bytes found"
-  doAssert decoder.index mod 32 == 0, "encoding variant broken"
+  doAssert decoder.last == decoder.bytes.len, "unread trailing bytes found"
+  doAssert decoder.last mod 32 == 0, "encoding variant broken"
 
 func decode*[T](decoder: var AbiDecoder, _: type seq[T]): seq[T] =
   let len = decoder.read(uint64)
