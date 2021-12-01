@@ -32,13 +32,7 @@ AbiEncoder.encode([1'u8, 2'u8, 3'u8])
 AbiEncoder.encode(@[1'u8, 2'u8, 3'u8])
 
 # encode tuples
-var encoder = AbiEncoder.init()
-encoder.startTuple()
-encoder.write(42'u8)
-encoder.write(@[1'u8, 2'u8, 3'u8])
-encoder.write(true)
-encoder.finishTuple()
-encoder.finish()
+AbiEncoder.encode( (42'u8, @[1'u8, 2'u8, 3'u8], true) )
 ```
 
 [1]: https://docs.soliditylang.org/en/latest/abi-spec.html

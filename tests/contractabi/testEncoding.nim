@@ -68,14 +68,7 @@ suite "ABI encoding":
     let b = @[1'u8, 2'u8, 3'u8]
     let c = 0xAABBCCDD'u32
     let d = @[4'u8, 5'u8, 6'u8]
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(a)
-    encoder.write(b)
-    encoder.write(c)
-    encoder.write(d)
-    encoder.finishTuple()
-    check encoder.finish() ==
+    check AbiEncoder.encode( (a, b, c, d) ) ==
       AbiEncoder.encode(a) &
       AbiEncoder.encode(4 * 32'u8) & # offset in tuple
       AbiEncoder.encode(c) &
@@ -88,16 +81,7 @@ suite "ABI encoding":
     let b = @[1'u8, 2'u8, 3'u8]
     let c = 0xAABBCCDD'u32
     let d = @[4'u8, 5'u8, 6'u8]
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(a)
-    encoder.write(b)
-    encoder.startTuple()
-    encoder.write(c)
-    encoder.write(d)
-    encoder.finishTuple()
-    encoder.finishTuple()
-    check encoder.finish() ==
+    check AbiEncoder.encode( (a, b, (c, d)) ) ==
       AbiEncoder.encode(a) &
       AbiEncoder.encode(3 * 32'u8) & # offset of b in outer tuple
       AbiEncoder.encode(5 * 32'u8) & # offset of inner tuple in outer tuple
@@ -106,65 +90,29 @@ suite "ABI encoding":
       AbiEncoder.encode(2 * 32'u8) & # offset of d in inner tuple
       AbiEncoder.encode(d)
 
-  test "encodes element after dynamic tuple":
-    let a = @[1'u8, 2'u8, 3'u8]
-    let b = 0xAABBCCDD'u32
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(a)
-    encoder.finishTuple()
-    encoder.write(b)
-    check encoder.finish() ==
-      AbiEncoder.encode(1 * 32'u8) & # offset of a in tuple
-      AbiEncoder.encode(a) &
-      AbiEncoder.encode(b)
-
   test "encodes arrays":
-    let element1 = seq[byte].example
-    let element2 = seq[byte].example
-    var expected= AbiEncoder.init()
-    expected.startTuple()
-    expected.write(element1)
-    expected.write(element2)
-    expected.finishTuple()
-    check AbiEncoder.encode([element1, element2]) == expected.finish()
+    let a, b = seq[byte].example
+    check AbiEncoder.encode([a, b]) == AbiEncoder.encode( (a,b) )
 
   test "encodes sequences":
-    let element1 = seq[byte].example
-    let element2 = seq[byte].example
-    var expected= AbiEncoder.init()
-    expected.write(2'u8)
-    expected.startTuple()
-    expected.write(element1)
-    expected.write(element2)
-    expected.finishTuple()
-    check AbiEncoder.encode(@[element1, element2]) == expected.finish()
+    let a, b = seq[byte].example
+    check AbiEncoder.encode(@[a, b]) ==
+      AbiEncoder.encode(2'u64) &
+      AbiEncoder.encode( (a, b) )
 
   test "encodes sequence as dynamic element":
     let s = @[42.u256, 43.u256]
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(s)
-    encoder.finishTuple()
-    check encoder.finish() ==
+    check AbiEncoder.encode( (s,) ) ==
       AbiEncoder.encode(32'u8) & # offset in tuple
       AbiEncoder.encode(s)
 
   test "encodes array of static elements as static element":
     let a = [[42'u8], [43'u8]]
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(a)
-    encoder.finishTuple()
-    check encoder.finish() == AbiEncoder.encode(a)
+    check AbiEncoder.encode( (a,) ) == AbiEncoder.encode(a)
 
   test "encodes array of dynamic elements as dynamic element":
     let a = [@[42'u8], @[43'u8]]
-    var encoder= AbiEncoder.init()
-    encoder.startTuple()
-    encoder.write(a)
-    encoder.finishTuple()
-    check encoder.finish() ==
+    check AbiEncoder.encode( (a,) ) ==
       AbiEncoder.encode(32'u8) & # offset in tuple
       AbiEncoder.encode(a)
 

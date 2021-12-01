@@ -54,7 +54,7 @@ func postpone(encoder: var AbiEncoder, bytes: seq[byte]) =
 func setDynamic(encoder: var AbiEncoder) =
   encoder.stack[^1].dynamic = true
 
-func startTuple*(encoder: var AbiEncoder) =
+func startTuple(encoder: var AbiEncoder) =
   encoder.stack.add(Tuple())
 
 func encode(encoder: var AbiEncoder, tupl: Tuple) =
@@ -64,7 +64,7 @@ func encode(encoder: var AbiEncoder, tupl: Tuple) =
   else:
     encoder.append(tupl.finish())
 
-func finishTuple*(encoder: var AbiEncoder) =
+func finishTuple(encoder: var AbiEncoder) =
   encoder.encode(encoder.stack.pop())
 
 func pad(encoder: var AbiEncoder, len: int) =
@@ -113,6 +113,12 @@ func encode[T](encoder: var AbiEncoder, value: seq[T]) =
 
 func encode(encoder: var AbiEncoder, value: string) =
   encoder.encode(value.toBytes)
+
+func encode(encoder: var AbiEncoder, tupl: tuple) =
+  encoder.startTuple()
+  for element in tupl.fields:
+    encoder.write(element)
+  encoder.finishTuple()
 
 func write*[T](encoder: var AbiEncoder, value: T) =
   var writer = AbiEncoder.init()
