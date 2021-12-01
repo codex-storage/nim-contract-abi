@@ -64,8 +64,8 @@ func decode*(decoder: var AbiDecoder, T: type bool): T =
 func decode*(decoder: var AbiDecoder, T: type enum): T =
   T(decoder.read(uint64))
 
-func decode*[I: static int](decoder: var AbiDecoder, T: type array[I,byte]): T =
-  result[0..<I] = decoder.read(I, padRight)
+func decode*[I](decoder: var AbiDecoder, T: type array[I, byte]): T =
+  result[0..<result.len] = decoder.read(result.len, padRight)
 
 func readOffset(decoder: var AbiDecoder): int =
   let offset = decoder.read(uint64)
