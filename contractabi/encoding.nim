@@ -84,7 +84,7 @@ func encode(encoder: var AbiEncoder, value: SomeUnsignedInt | StUint) =
   encoder.padleft(value.toBytesBE)
 
 func encode(encoder: var AbiEncoder, value: bool) =
-  encoder.encode(cast[uint8](value))
+  encoder.encode(if value: 1'u8 else: 0'u8)
 
 func encode(encoder: var AbiEncoder, value: enum) =
   encoder.encode(uint64(ord(value)))
