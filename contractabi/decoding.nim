@@ -94,7 +94,11 @@ func decode(decoder: var AbiDecoder, T: type bool): ?!T =
     else: failure "invalid boolean value"
 
 func decode(decoder: var AbiDecoder, T: type enum): ?!T =
-  success T(?decoder.read(uint64))
+  let value = ?decoder.read(uint64)
+  if value in T.low.uint64..T.high.uint64:
+    success T(value)
+  else:
+    failure "invalid enum value"
 
 func decode[I](decoder: var AbiDecoder, T: type array[I, byte]): ?!T =
   var arr: T

@@ -65,7 +65,12 @@ suite "ABI decoding":
     checkDecode(one)
     checkDecode(two)
 
-  # TODO: failure to decode when invalid enum value
+  test "fails to decode enum when encountering invalid value":
+    type SomeEnum = enum
+      one = 1
+      two = 2
+    let encoded = AbiEncoder.encode(3'u8)
+    check AbiDecoder.decode(encoded, SomeEnum).error.msg == "invalid enum value"
 
   test "decodes stints":
     checkDecode(UInt128)
