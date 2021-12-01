@@ -71,6 +71,22 @@ func read(decoder: var AbiDecoder, amount: int, padding=padLeft): ?!seq[byte] =
 func decode(decoder: var AbiDecoder, T: type UInt): ?!T =
   success T.fromBytesBE(?decoder.read(sizeof(T)))
 
+template basetype(Range: type range): untyped =
+  when Range isnot SomeUnsignedInt: {.error: "only uint ranges supported".}
+  elif sizeof(Range) == sizeof(uint8): uint8
+  elif sizeof(Range) == sizeof(uint16): uint16
+  elif sizeof(Range) == sizeof(uint32): uint32
+  elif sizeof(Range) == sizeof(uint64): uint64
+  else: {.error "unsupported range type".}
+
+func decode(decoder: var AbiDecoder, T: type range): ?!T =
+  let bytes = ?decoder.read(sizeof(T))
+  let value = basetype(T).fromBytesBE(bytes)
+  if value in T.low..T.high:
+    success T(value)
+  else:
+    failure "value not in range"
+
 func decode(decoder: var AbiDecoder, T: type bool): ?!T =
   case ?decoder.read(uint8)
     of 0: success false

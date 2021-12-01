@@ -52,7 +52,11 @@ suite "ABI decoding":
     checkDecode(SomeRange.low)
     checkDecode(SomeRange.high)
 
-  # TODO: failure to decode when value not in range
+  test "fails to decode when value not in range":
+    type SomeRange = range[0x0000'u16..0xAAAA'u16]
+    let encoded = AbiEncoder.encode(0xFFFF'u16)
+    let decoded = AbiDecoder.decode(encoded, SomeRange)
+    check decoded.error.msg == "value not in range"
 
   test "decodes enums":
     type SomeEnum = enum
