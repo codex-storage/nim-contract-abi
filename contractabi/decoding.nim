@@ -20,10 +20,12 @@ type
     padRight
   UInt = SomeUnsignedInt | StUint
 
+func read*(decoder: var AbiDecoder, T: type): T
+
 func init(_: type Tuple, offset: int, dynamic: bool): Tuple =
   Tuple(start: offset, index: offset, dynamic: dynamic)
 
-func init*(_: type AbiDecoder, bytes: seq[byte], offset=0): AbiDecoder =
+func init(_: type AbiDecoder, bytes: seq[byte], offset=0): AbiDecoder =
   AbiDecoder(bytes: bytes, stack: @[Tuple.init(offset, dynamic=false)])
 
 func currentTuple(decoder: var AbiDecoder): var Tuple =
@@ -52,19 +54,16 @@ func read(decoder: var AbiDecoder, amount: int, padding = padLeft): seq[byte] =
   if padding == padRight:
     decoder.advance(padlen)
 
-func read*(decoder: var AbiDecoder, T: type): T =
-  decoder.decode(T)
-
-func decode*(decoder: var AbiDecoder, T: type UInt): T =
+func decode(decoder: var AbiDecoder, T: type UInt): T =
   T.fromBytesBE(decoder.read(sizeof(T)))
 
-func decode*(decoder: var AbiDecoder, T: type bool): T =
+func decode(decoder: var AbiDecoder, T: type bool): T =
   decoder.read(uint8) != 0
 
-func decode*(decoder: var AbiDecoder, T: type enum): T =
+func decode(decoder: var AbiDecoder, T: type enum): T =
   T(decoder.read(uint64))
 
-func decode*[I](decoder: var AbiDecoder, T: type array[I, byte]): T =
+func decode[I](decoder: var AbiDecoder, T: type array[I, byte]): T =
   result[0..<result.len] = decoder.read(result.len, padRight)
 
 func readOffset(decoder: var AbiDecoder): int =
@@ -77,7 +76,7 @@ func readTail(decoder: var AbiDecoder, T: type seq[byte]): T =
   result = tailDecoder.read(T)
   decoder.updateLast(tailDecoder.index)
 
-func decode*(decoder: var AbiDecoder, T: type seq[byte]): T =
+func decode(decoder: var AbiDecoder, T: type seq[byte]): T =
   if decoder.currentTuple.dynamic:
     decoder.readTail(T)
   else:
@@ -98,33 +97,36 @@ func finishTuple(decoder: var AbiDecoder) =
   if not tupl.dynamic:
     decoder.index = tupl.index
 
-func decode*(decoder: var AbiDecoder, T: type tuple): T =
+func decode(decoder: var AbiDecoder, T: type tuple): T =
   const dynamic = AbiEncoder.isDynamic(typeof(result))
   decoder.startTuple(dynamic)
   for element in result.fields:
     element = decoder.read(typeof(element))
   decoder.finishTuple()
 
-func finish*(decoder: var AbiDecoder) =
+func read*(decoder: var AbiDecoder, T: type): T =
+  decoder.decode(T)
+
+func finish(decoder: var AbiDecoder) =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
   doAssert decoder.last == decoder.bytes.len, "unread trailing bytes found"
   doAssert decoder.last mod 32 == 0, "encoding variant broken"
 
-func decode*[T](decoder: var AbiDecoder, _: type seq[T]): seq[T] =
+func decode[T](decoder: var AbiDecoder, _: type seq[T]): seq[T] =
   let len = decoder.read(uint64)
   decoder.startTuple(dynamic=true)
   for _ in 0..<len:
     result.add(decoder.read(T))
   decoder.finishTuple()
 
-func decode*[I,T](decoder: var AbiDecoder, _: type array[I,T]): array[I,T] =
+func decode[I,T](decoder: var AbiDecoder, _: type array[I,T]): array[I,T] =
   const dynamic = AbiEncoder.isDynamic(T)
   decoder.startTuple(dynamic)
   for i in 0..<result.len:
     result[i] = decoder.read(T)
   decoder.finishTuple()
 
-func decode*(decoder: var AbiDecoder, T: type string): T =
+func decode(decoder: var AbiDecoder, T: type string): T =
   string.fromBytes(decoder.read(seq[byte]))
 
 func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): T =

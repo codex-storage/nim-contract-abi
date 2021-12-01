@@ -20,7 +20,7 @@ type
 func write*[T](encoder: var AbiEncoder, value: T)
 func encode*[T](_: type AbiEncoder, value: T): seq[byte]
 
-func init*(_: type AbiEncoder): AbiEncoder =
+func init(_: type AbiEncoder): AbiEncoder =
   AbiEncoder(stack: @[Tuple()])
 
 func append(tupl: var Tuple, bytes: openArray[byte]) =
@@ -125,7 +125,7 @@ func write*[T](encoder: var AbiEncoder, value: T) =
   writer.encode(value)
   encoder.encode(writer.stack[0])
 
-func finish*(encoder: var AbiEncoder): seq[byte] =
+func finish(encoder: var AbiEncoder): seq[byte] =
   doAssert encoder.stack.len == 1, "not all tuples were finished"
   doAssert encoder.stack[0].bytes.len mod 32 == 0, "encoding invariant broken"
   encoder.stack[0].bytes
