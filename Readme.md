@@ -19,12 +19,12 @@ Usage
 
 ```nim
 import contractabi
-import stint
 
 # encode unsigned integers, booleans, enums
 AbiEncoder.encode(42'u8)
 
 # encode uint256
+import stint
 AbiEncoder.encode(42.u256)
 
 # encode byte arrays and sequences
@@ -42,6 +42,21 @@ AbiDecoder.decode(bytes, seq[uint8])
 
 # decode tuples
 AbiDecoder.decode(bytes, (uint32, bool, seq[byte]) )
+
+# add support for encoding of custom types
+import questionable/results
+
+type CustomType = object
+  a: uint16
+  b: string
+
+func encode(encoder: var AbiEncoder, custom: CustomType) =
+  encoder.write( (custom.a, custom.b) )
+
+func decode(decoder: var AbiDecoder, T: type CustomType): ?!T =
+  let (a, b) = ?decoder.read( (uint16, string) )
+  success CustomType(a: a, b: b)
+
 ```
 
 [1]: https://docs.soliditylang.org/en/latest/abi-spec.html

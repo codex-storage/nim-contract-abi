@@ -146,9 +146,6 @@ func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
   decoder.finishTuple()
   success tupl
 
-func read*(decoder: var AbiDecoder, T: type): ?!T =
-  decoder.decode(T)
-
 func finish(decoder: var AbiDecoder): ?!void =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
   doAssert decoder.last mod 32 == 0, "encoding invariant broken"
@@ -183,3 +180,6 @@ func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
   var value = ?decoder.decode(T)
   ?decoder.finish()
   success value
+
+func read*(decoder: var AbiDecoder, T: type): ?!T =
+  decoder.decode(T)
