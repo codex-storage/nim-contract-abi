@@ -20,14 +20,31 @@ suite "ABI decoding":
     checkDecode(uint32)
     checkDecode(uint64)
 
-  # TODO: failure to decode when prefix not all zeroes
-  # TODO: failure when trailing bytes
+  test "fails to decode when reading past end":
+    var encoded = AbiEncoder.encode(uint8.example)
+    encoded.delete(encoded.len-1)
+    let decoded = AbiDecoder.decode(encoded, uint8)
+    check decoded.error.msg == "reading past end"
+
+  test "fails to decode when trailing bytes remain":
+    var encoded = AbiEncoder.encode(uint8.example)
+    encoded.add(byte.example)
+    let decoded = AbiDecoder.decode(encoded, uint8)
+    check decoded.error.msg == "unread trailing bytes found"
+
+  test "fails to decode when padding does not consist of zeroes":
+    var encoded = AbiEncoder.encode(uint8.example)
+    encoded[3] = 42'u8
+    let decoded = AbiDecoder.decode(encoded, uint8)
+    check decoded.error.msg == "invalid padding found"
 
   test "decodes booleans":
     checkDecode(false)
     checkDecode(true)
 
-  # TODO: failure to decode when value not 0 or 1
+  test "fails to decode boolean when value is not 0 or 1":
+    let encoded = AbiEncoder.encode(2'u8)
+    check AbiDecoder.decode(encoded, bool).error.msg == "invalid boolean value"
 
   test "decodes ranges":
     type SomeRange = range[0x0000'u16..0xAAAA'u16]
@@ -55,14 +72,10 @@ suite "ABI decoding":
     checkDecode(array[32, byte].example)
     checkDecode(array[33, byte].example)
 
-  # TODO: failure to decode when byte array of wrong length
-
   test "decodes byte sequences":
     checkDecode(@[1'u8, 2'u8, 3'u8])
     checkDecode(@(array[32, byte].example))
     checkDecode(@(array[33, byte].example))
-
-  # TODO: failure to decode when not enough bytes
 
   test "decodes tuples":
     let a = true

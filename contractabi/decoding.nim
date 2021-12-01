@@ -45,23 +45,37 @@ func updateLast(decoder: var AbiDecoder, index: int) =
 func advance(decoder: var AbiDecoder, amount: int): ?!void =
   decoder.index += amount
   decoder.updateLast(decoder.index)
+  if decoder.index <= decoder.bytes.len:
+    success()
+  else:
+    failure "reading past end"
+
+func skipPadding(decoder: var AbiDecoder, amount: int): ?!void =
+  let index = decoder.index
+  ?decoder.advance(amount)
+  for i in index..<index+amount:
+    if decoder.bytes[i] != 0:
+      return failure "invalid padding found"
   success()
 
 func read(decoder: var AbiDecoder, amount: int, padding=padLeft): ?!seq[byte] =
   let padlen = (32 - amount mod 32) mod 32
   if padding == padLeft:
-    ?decoder.advance(padlen)
+    ?decoder.skipPadding(padlen)
   let index = decoder.index
   ?decoder.advance(amount)
   result = success decoder.bytes[index..<index+amount]
   if padding == padRight:
-    ?decoder.advance(padlen)
+    ?decoder.skipPadding(padlen)
 
 func decode(decoder: var AbiDecoder, T: type UInt): ?!T =
   success T.fromBytesBE(?decoder.read(sizeof(T)))
 
 func decode(decoder: var AbiDecoder, T: type bool): ?!T =
-  success (?decoder.read(uint8) != 0)
+  case ?decoder.read(uint8)
+    of 0: success false
+    of 1: success true
+    else: failure "invalid boolean value"
 
 func decode(decoder: var AbiDecoder, T: type enum): ?!T =
   success T(?decoder.read(uint64))
@@ -115,10 +129,13 @@ func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
 func read*(decoder: var AbiDecoder, T: type): ?!T =
   decoder.decode(T)
 
-func finish(decoder: var AbiDecoder) =
+func finish(decoder: var AbiDecoder): ?!void =
   doAssert decoder.stack.len == 1, "not all tuples were finished"
-  doAssert decoder.last == decoder.bytes.len, "unread trailing bytes found"
-  doAssert decoder.last mod 32 == 0, "encoding variant broken"
+  doAssert decoder.last mod 32 == 0, "encoding invariant broken"
+  if decoder.last != decoder.bytes.len:
+    failure "unread trailing bytes found"
+  else:
+    success()
 
 func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
   var sequence: seq[T]
@@ -144,5 +161,5 @@ func decode(decoder: var AbiDecoder, T: type string): ?!T =
 func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
   var decoder = AbiDecoder.init(bytes)
   var value = ?decoder.decode(T)
-  decoder.finish()
+  ?decoder.finish()
   success value
