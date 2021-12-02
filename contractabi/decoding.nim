@@ -15,7 +15,6 @@ type
   Tuple = object
     start: int
     index: int
-    dynamic: bool
   Padding = enum
     padLeft,
     padRight
@@ -23,11 +22,11 @@ type
 
 func read*(decoder: var AbiDecoder, T: type): ?!T
 
-func init(_: type Tuple, offset: int, dynamic: bool): Tuple =
-  Tuple(start: offset, index: offset, dynamic: dynamic)
+func init(_: type Tuple, offset: int): Tuple =
+  Tuple(start: offset, index: offset)
 
 func init(_: type AbiDecoder, bytes: seq[byte], offset=0): AbiDecoder =
-  AbiDecoder(bytes: bytes, stack: @[Tuple.init(offset, dynamic=false)])
+  AbiDecoder(bytes: bytes, stack: @[Tuple.init(offset)])
 
 func currentTuple(decoder: var AbiDecoder): var Tuple =
   decoder.stack[^1]
@@ -105,42 +104,22 @@ func decode[I](decoder: var AbiDecoder, T: type array[I, byte]): ?!T =
   arr[0..<arr.len] = ?decoder.read(arr.len, padRight)
   success arr
 
-func readOffset(decoder: var AbiDecoder): ?!int =
-  let offset = ?decoder.read(uint64)
-  success decoder.currentTuple.start + offset.int
-
-func readTail(decoder: var AbiDecoder): ?!seq[byte] =
-  let offset = ?decoder.readOffset()
-  var tailDecoder = AbiDecoder.init(decoder.bytes, offset)
-  result = tailDecoder.read(seq[byte])
-  decoder.updateLast(tailDecoder.index)
-
 func decode(decoder: var AbiDecoder, T: type seq[byte]): ?!T =
-  if decoder.currentTuple.dynamic:
-    decoder.readTail()
-  else:
-    let len = ?decoder.read(uint64)
-    decoder.read(len.int, padRight)
+  let len = ?decoder.read(uint64)
+  decoder.read(len.int, padRight)
 
-func startTuple(decoder: var AbiDecoder, dynamic: bool): ?!void =
-  var start: int
-  if decoder.currentTuple.dynamic and dynamic:
-    start = ?decoder.readOffset()
-  else:
-    start = decoder.index
-  decoder.stack.add(Tuple.init(start, dynamic))
+func startTuple(decoder: var AbiDecoder): ?!void =
+  decoder.stack.add(Tuple.init(decoder.index))
   success()
 
 func finishTuple(decoder: var AbiDecoder) =
   doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
   let tupl = decoder.stack.pop()
-  if not tupl.dynamic:
-    decoder.index = tupl.index
+  decoder.index = tupl.index
 
 func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
-  const dynamic = AbiEncoder.isDynamic(T)
   var tupl: T
-  ?decoder.startTuple(dynamic)
+  ?decoder.startTuple()
   for element in tupl.fields:
     element = ?decoder.read(typeof(element))
   decoder.finishTuple()
@@ -157,7 +136,7 @@ func finish(decoder: var AbiDecoder): ?!void =
 func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
   var sequence: seq[T]
   let len = ?decoder.read(uint64)
-  ?decoder.startTuple(dynamic=true)
+  ?decoder.startTuple()
   for _ in 0..<len:
     sequence.add(?decoder.read(T))
   decoder.finishTuple()
@@ -165,8 +144,7 @@ func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
 
 func decode[I,T](decoder: var AbiDecoder, _: type array[I,T]): ?!array[I,T] =
   var arr: array[I, T]
-  const dynamic = AbiEncoder.isDynamic(T)
-  ?decoder.startTuple(dynamic)
+  ?decoder.startTuple()
   for i in 0..<arr.len:
     arr[i] = ?decoder.read(T)
   decoder.finishTuple()
@@ -181,5 +159,19 @@ func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
   ?decoder.finish()
   success value
 
+func readOffset(decoder: var AbiDecoder): ?!int =
+  let offset = ?decoder.read(uint64)
+  success decoder.currentTuple.start + offset.int
+
+func readTail*(decoder: var AbiDecoder, T: type): ?!T =
+  let offset = ?decoder.readOffset()
+  var tailDecoder = AbiDecoder.init(decoder.bytes, offset.int)
+  result = tailDecoder.read(T)
+  decoder.updateLast(tailDecoder.last)
+
 func read*(decoder: var AbiDecoder, T: type): ?!T =
-  decoder.decode(T)
+  const dynamic = AbiEncoder.isDynamic(typeof(!result))
+  if dynamic and decoder.stack.len > 1:
+    decoder.readTail(T)
+  else:
+    decoder.decode(T)
