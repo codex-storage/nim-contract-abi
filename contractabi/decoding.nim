@@ -37,6 +37,15 @@ func index(decoder: var AbiDecoder): var int =
 func `index=`(decoder: var AbiDecoder, value: int) =
   decoder.currentTuple.index = value
 
+func startTuple(decoder: var AbiDecoder): ?!void =
+  decoder.stack.add(Tuple.init(decoder.index))
+  success()
+
+func finishTuple(decoder: var AbiDecoder) =
+  doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
+  let tupl = decoder.stack.pop()
+  decoder.index = tupl.index
+
 func updateLast(decoder: var AbiDecoder, index: int) =
   if index > decoder.last:
     decoder.last = index
@@ -108,15 +117,6 @@ func decode(decoder: var AbiDecoder, T: type seq[byte]): ?!T =
   let len = ?decoder.read(uint64)
   decoder.read(len.int, padRight)
 
-func startTuple(decoder: var AbiDecoder): ?!void =
-  decoder.stack.add(Tuple.init(decoder.index))
-  success()
-
-func finishTuple(decoder: var AbiDecoder) =
-  doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
-  let tupl = decoder.stack.pop()
-  decoder.index = tupl.index
-
 func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
   var tupl: T
   ?decoder.startTuple()
@@ -124,14 +124,6 @@ func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
     element = ?decoder.read(typeof(element))
   decoder.finishTuple()
   success tupl
-
-func finish(decoder: var AbiDecoder): ?!void =
-  doAssert decoder.stack.len == 1, "not all tuples were finished"
-  doAssert decoder.last mod 32 == 0, "encoding invariant broken"
-  if decoder.last != decoder.bytes.len:
-    failure "unread trailing bytes found"
-  else:
-    success()
 
 func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
   var sequence: seq[T]
@@ -153,12 +145,6 @@ func decode[I,T](decoder: var AbiDecoder, _: type array[I,T]): ?!array[I,T] =
 func decode(decoder: var AbiDecoder, T: type string): ?!T =
   success string.fromBytes(?decoder.read(seq[byte]))
 
-func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
-  var decoder = AbiDecoder.init(bytes)
-  var value = ?decoder.decode(T)
-  ?decoder.finish()
-  success value
-
 func readOffset(decoder: var AbiDecoder): ?!int =
   let offset = ?decoder.read(uint64)
   success decoder.currentTuple.start + offset.int
@@ -175,3 +161,17 @@ func read*(decoder: var AbiDecoder, T: type): ?!T =
     decoder.readTail(T)
   else:
     decoder.decode(T)
+
+func finish(decoder: var AbiDecoder): ?!void =
+  doAssert decoder.stack.len == 1, "not all tuples were finished"
+  doAssert decoder.last mod 32 == 0, "encoding invariant broken"
+  if decoder.last != decoder.bytes.len:
+    failure "unread trailing bytes found"
+  else:
+    success()
+
+func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
+  var decoder = AbiDecoder.init(bytes)
+  var value = ?decoder.decode(T)
+  ?decoder.finish()
+  success value
