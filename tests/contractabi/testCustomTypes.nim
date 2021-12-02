@@ -23,3 +23,9 @@ suite "custom types":
   test "can be decoded":
     let encoding = AbiEncoder.encode(custom)
     check AbiDecoder.decode(encoding, CustomType) == success custom
+
+  test "can be embedded in tuples, arrays and sequences":
+    let embedding = (custom, [custom], @[custom])
+    let encoding = AbiEncoder.encode(embedding)
+    let decoded = AbiDecoder.decode(encoding, typeof(embedding))
+    check !decoded == embedding
