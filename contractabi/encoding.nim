@@ -67,21 +67,29 @@ func encode(encoder: var AbiEncoder, tupl: Tuple) =
 func finishTuple(encoder: var AbiEncoder) =
   encoder.encode(encoder.stack.pop())
 
-func pad(encoder: var AbiEncoder, len: int) =
+func pad(encoder: var AbiEncoder, len: int, padding=0'u8) =
   let padlen = (32 - len mod 32) mod 32
   for _ in 0..<padlen:
-    encoder.append([0'u8])
+    encoder.append([padding])
 
-func padleft(encoder: var AbiEncoder, bytes: openArray[byte]) =
-  encoder.pad(bytes.len)
+func padleft(encoder: var AbiEncoder, bytes: openArray[byte], padding=0'u8) =
+  encoder.pad(bytes.len, padding)
   encoder.append(bytes)
 
-func padright(encoder: var AbiEncoder, bytes: openArray[byte]) =
+func padright(encoder: var AbiEncoder, bytes: openArray[byte], padding=0'u8) =
   encoder.append(bytes)
-  encoder.pad(bytes.len)
+  encoder.pad(bytes.len, padding)
 
 func encode(encoder: var AbiEncoder, value: SomeUnsignedInt | StUint) =
   encoder.padleft(value.toBytesBE)
+
+func encode[bits](encoder: var AbiEncoder, value: StInt[bits]) =
+  let bytes = value.stuint(bits).toBytesBE
+  let padding = if value.isNegative: 0xFF'u8 else: 0x00'u8
+  encoder.padleft(bytes, padding)
+
+func encode(encoder: var AbiEncoder, value: SomeSignedInt) =
+  encoder.write(value.i256)
 
 func encode(encoder: var AbiEncoder, value: bool) =
   encoder.encode(if value: 1'u8 else: 0'u8)

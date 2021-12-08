@@ -1,5 +1,6 @@
 
 import std/unittest
+import std/sequtils
 import pkg/stint
 import pkg/stew/byteutils
 import contractabi
@@ -27,6 +28,16 @@ suite "ABI encoding":
       0x11'u8 & 0x22'u8 & 0x33'u8 & 0x44'u8 &
       0x55'u8 & 0x66'u8 & 0x77'u8 & 0x88'u8
 
+  test "encodes int8, 16, 32, 64":
+    check AbiEncoder.encode(1'i8) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(-1'i8) == 0xFF'u8.repeat(32)
+    check AbiEncoder.encode(1'i16) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(-1'i16) == 0xFF'u8.repeat(32)
+    check AbiEncoder.encode(1'i32) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(-1'i32) == 0xFF'u8.repeat(32)
+    check AbiEncoder.encode(1'i64) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(-1'i64) == 0xFF'u8.repeat(32)
+
   test "encodes ranges":
     type SomeRange = range[0x0000'u16..0xAAAA'u16]
     check AbiEncoder.encode(SomeRange(0x1122)) == 30.zeroes & 0x11'u8 & 0x22'u8
@@ -40,9 +51,13 @@ suite "ABI encoding":
 
   test "encodes stints":
     let uint256 = UInt256.example
-    check AbiEncoder.encode(uint256) == @(uint256.toBytesBE)
     let uint128 = UInt128.example
+    check AbiEncoder.encode(uint256) == @(uint256.toBytesBE)
     check AbiEncoder.encode(uint128) == 16.zeroes & @(uint128.toBytesBE)
+    check AbiEncoder.encode(1.i256) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(1.i128) == 31.zeroes & 0x01'u8
+    check AbiEncoder.encode(-1.i256) == 0xFF'u8.repeat(32)
+    check AbiEncoder.encode(-1.i128) == 0xFF'u8.repeat(32)
 
   test "encodes byte arrays":
     let bytes3 = [1'u8, 2'u8, 3'u8]
