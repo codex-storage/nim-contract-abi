@@ -1,6 +1,7 @@
 import pkg/stint
 import pkg/upraises
 import pkg/stew/byteutils
+import ./integers
 
 export stint
 
@@ -83,13 +84,10 @@ func padright(encoder: var AbiEncoder, bytes: openArray[byte], padding=0'u8) =
 func encode(encoder: var AbiEncoder, value: SomeUnsignedInt | StUint) =
   encoder.padleft(value.toBytesBE)
 
-func encode[bits](encoder: var AbiEncoder, value: StInt[bits]) =
-  let bytes = value.stuint(bits).toBytesBE
+func encode(encoder: var AbiEncoder, value: SomeSignedInt | StInt) =
+  let bytes = value.unsigned.toBytesBE
   let padding = if value.isNegative: 0xFF'u8 else: 0x00'u8
   encoder.padleft(bytes, padding)
-
-func encode(encoder: var AbiEncoder, value: SomeSignedInt) =
-  encoder.write(value.to(StInt[64]))
 
 func encode(encoder: var AbiEncoder, value: bool) =
   encoder.encode(if value: 1'u8 else: 0'u8)
