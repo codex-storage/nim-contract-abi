@@ -11,7 +11,7 @@ Use the [Nimble][2] package manager to add `contractabi` to an existing project.
 Add the following to its .nimble file:
 
 ```nim
-requires "https://github.com/status-im/nim-contract-abi >= 0.3.0 & < 0.4.0"
+requires "contractabi >= 0.4.0 & < 0.5.0"
 ```
 
 Usage
