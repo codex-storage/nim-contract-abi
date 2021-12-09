@@ -62,7 +62,7 @@ func skipPadding(decoder: var AbiDecoder, amount: int): ?!void =
   let index = decoder.index
   ?decoder.advance(amount)
   for i in index..<index+amount:
-    if decoder.bytes[i] != 0:
+    if decoder.bytes[i] notin [0x00'u8, 0xFF'u8]:
       return failure "invalid padding found"
   success()
 
@@ -78,6 +78,23 @@ func read(decoder: var AbiDecoder, amount: int, padding=padLeft): ?!seq[byte] =
 
 func decode(decoder: var AbiDecoder, T: type UInt): ?!T =
   success T.fromBytesBE(?decoder.read(sizeof(T)))
+
+template unsigned(T: type SomeSignedInt): type SomeUnsignedInt =
+  when T is int8: uint8
+  elif T is int16: uint16
+  elif T is int32: uint32
+  elif T is int64: uint64
+  else: {.error "unsupported signed integer type".}
+
+func decode(decoder: var AbiDecoder, T: type SomeSignedInt): ?!T =
+  let bytes = ?decoder.read(sizeof(T))
+  let unsigned = T.unsigned.fromBytesBE(bytes)
+  let signed = cast[T](unsigned)
+  success signed
+
+func decode[bits](decoder: var AbiDecoder, T: type StInt[bits]): ?!T =
+  let unsigned = ?decoder.read(StUint[bits])
+  success cast[T](unsigned)
 
 template basetype(Range: type range): untyped =
   when Range isnot SomeUnsignedInt: {.error: "only uint ranges supported".}

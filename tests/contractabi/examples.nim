@@ -18,8 +18,8 @@ proc example*[T](_: type seq[T], len = 0..5): seq[T] =
   let chosenlen = rand(len)
   newSeqWith(chosenlen, T.example)
 
-proc example*(_: type UInt256): UInt256 =
-  UInt256.fromBytes(array[32, byte].example)
+proc example*(T: type StUint): T =
+  T.fromBytes(array[sizeof(T), byte].example)
 
-proc example*(_: type UInt128): UInt128 =
-  UInt128.fromBytes(array[16, byte].example)
+proc example*(T: type StInt): T =
+  cast[T](StUint[T.bits].example)

@@ -89,7 +89,7 @@ func encode[bits](encoder: var AbiEncoder, value: StInt[bits]) =
   encoder.padleft(bytes, padding)
 
 func encode(encoder: var AbiEncoder, value: SomeSignedInt) =
-  encoder.write(value.i256)
+  encoder.write(value.to(StInt[64]))
 
 func encode(encoder: var AbiEncoder, value: bool) =
   encoder.encode(if value: 1'u8 else: 0'u8)

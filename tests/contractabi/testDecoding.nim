@@ -20,6 +20,12 @@ suite "ABI decoding":
     checkDecode(uint32)
     checkDecode(uint64)
 
+  test "decodes int8, int16, int32, int64":
+    checkDecode(int8)
+    checkDecode(int16)
+    checkDecode(int32)
+    checkDecode(int64)
+
   test "fails to decode when reading past end":
     var encoded = AbiEncoder.encode(uint8.example)
     encoded.delete(encoded.len-1)
@@ -75,6 +81,8 @@ suite "ABI decoding":
   test "decodes stints":
     checkDecode(UInt128)
     checkDecode(UInt256)
+    checkDecode(Int128)
+    checkDecode(Int256)
 
   test "decodes byte arrays":
     checkDecode([1'u8, 2'u8, 3'u8])
