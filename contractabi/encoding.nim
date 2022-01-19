@@ -2,8 +2,10 @@ import pkg/stint
 import pkg/upraises
 import pkg/stew/byteutils
 import ./integers
+import ./address
 
 export stint
+export address
 
 push: {.upraises:[].}
 
@@ -94,6 +96,9 @@ func encode(encoder: var AbiEncoder, value: bool) =
 
 func encode(encoder: var AbiEncoder, value: enum) =
   encoder.encode(uint64(ord(value)))
+
+func encode(encoder: var AbiEncoder, value: Address) =
+  encoder.padleft(value.toArray)
 
 func encode[I](encoder: var AbiEncoder, bytes: array[I, byte]) =
   encoder.padright(bytes)

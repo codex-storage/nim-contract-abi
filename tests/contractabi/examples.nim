@@ -1,6 +1,7 @@
 import std/random
 import std/sequtils
 import pkg/stint
+import pkg/contractabi/address
 
 randomize()
 
@@ -23,3 +24,6 @@ proc example*(T: type StUint): T =
 
 proc example*(T: type StInt): T =
   cast[T](StUint[T.bits].example)
+
+proc example*(T: type Address): T =
+  Address.init(array[20, byte].example)

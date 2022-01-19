@@ -84,6 +84,9 @@ suite "ABI decoding":
     checkDecode(Int128)
     checkDecode(Int256)
 
+  test "decodes addresses":
+    checkDecode(Address.example)
+
   test "decodes byte arrays":
     checkDecode([1'u8, 2'u8, 3'u8])
     checkDecode(array[32, byte].example)

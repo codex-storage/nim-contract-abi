@@ -59,6 +59,10 @@ suite "ABI encoding":
     check AbiEncoder.encode(-1.i256) == 0xFF'u8.repeat(32)
     check AbiEncoder.encode(-1.i128) == 0xFF'u8.repeat(32)
 
+  test "encodes addresses":
+    let address = Address.example
+    check AbiEncoder.encode(address) == 12.zeroes & @(address.toArray)
+
   test "encodes byte arrays":
     let bytes3 = [1'u8, 2'u8, 3'u8]
     check AbiEncoder.encode(bytes3) == @bytes3 & 29.zeroes

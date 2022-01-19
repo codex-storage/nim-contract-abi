@@ -5,6 +5,10 @@ import pkg/questionable/results
 import pkg/upraises
 import ./encoding
 import ./integers
+import ./address
+
+export stint
+export address
 
 push: {.upraises:[].}
 
@@ -113,6 +117,11 @@ func decode(decoder: var AbiDecoder, T: type enum): ?!T =
     success T(value)
   else:
     failure "invalid enum value"
+
+func decode(decoder: var AbiDecoder, T: type Address): ?!T =
+  var bytes: array[20, byte]
+  bytes[0..<20] =(?decoder.read(20))[0..<20]
+  success T.init(bytes)
 
 func decode[I](decoder: var AbiDecoder, T: type array[I, byte]): ?!T =
   var arr: T
