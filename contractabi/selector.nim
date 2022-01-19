@@ -34,17 +34,17 @@ solidityType bool,    "bool"
 solidityType string,  "string"
 solidityType Address, "address"
 
-func solidityType*[N: static int](_: type array[N, byte]): string =
-  "bytes" & $N
-
-func solidityType*(_: type seq[byte]): string =
-  "bytes"
-
-func solidityType*[T, N](_: type array[N, T]): string =
-  solidityType(T) & "[" & $array[N, T].default.len & "]"
+func solidityType*[N: static int, T](_: type array[N, T]): string =
+  when T is byte:
+    "bytes" & $N
+  else:
+    solidityType(T) & "[" & $N & "]"
 
 func solidityType*[T](_: type seq[T]): string =
-  solidityType(T) & "[]"
+  when T is byte:
+    "bytes"
+  else:
+    solidityType(T) & "[]"
 
 func solidityType*(Tuple: type tuple): string =
   var names: seq[string]

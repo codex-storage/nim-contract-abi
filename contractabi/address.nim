@@ -23,4 +23,5 @@ func toArray*(address: Address): array[20, byte] =
 func `$`*(address: Address): string =
   "0x" & toHex(address.toArray)
 
-func `==`*(a, b: Address): bool {.borrow.}
+func `==`*(a, b: Address): bool =
+  a.toArray == b.toArray
