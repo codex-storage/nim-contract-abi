@@ -1,5 +1,6 @@
 import std/unittest
-import pkg/contractabi/selector
+import pkg/stew/byteutils
+import pkg/contractabi
 
 suite "function selector":
 
@@ -29,3 +30,8 @@ suite "function selector":
   test "calculates solidity function selector":
     check $selector("transfer", (Address, UInt256)) == "0xa9059cbb"
     check $selector("transferFrom", (Address, Address, UInt256)) == "0x23b872dd"
+
+  test "calculates solidity event topic":
+    let expected = "0xddf252ad1be2c89b69c2b068fc378daa" &
+                     "952ba7f163c4a11628f55a4df523b3ef"
+    check $topic("Transfer", (Address, Address, UInt256)) == expected

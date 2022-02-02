@@ -8,12 +8,16 @@ export address
 export stint
 
 type FunctionSelector* = distinct array[4, byte]
+type EventTopic* = distinct array[32, byte]
 
 proc toArray*(selector: FunctionSelector): array[4, byte] =
   array[4, byte](selector)
 
-proc `$`*(selector: FunctionSelector): string =
-  "0x" & selector.toArray.toHex
+proc toArray*(topic: EventTopic): array[32, byte] =
+  array[32, byte](topic)
+
+proc `$`*(value: FunctionSelector | EventTopic): string =
+  "0x" & value.toArray.toHex
 
 template solidityType(T: type, s: string) =
   func solidityType*(_: type T): string = s
@@ -64,3 +68,6 @@ func selector*(function: string, parameters: type tuple): FunctionSelector =
   var selector: array[4, byte]
   selector[0..<4] = hash[0..<4]
   FunctionSelector(selector)
+
+func topic*(event: string, parameters: type tuple): EventTopic =
+  EventTopic(hash(signature(event, parameters)))
