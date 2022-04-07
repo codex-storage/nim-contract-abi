@@ -40,7 +40,10 @@ solidityType Address, "address"
 
 func solidityType*[N: static int, T](_: type array[N, T]): string =
   when T is byte:
-    "bytes" & $N
+    when 0 < N and N <= 32:
+      "bytes" & $N
+    else:
+      "bytes1[" & $N & "]"
   else:
     solidityType(T) & "[" & $N & "]"
 
