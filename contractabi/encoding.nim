@@ -57,7 +57,7 @@ func postpone(encoder: var AbiEncoder, bytes: seq[byte]) =
 func setDynamic(encoder: var AbiEncoder) =
   encoder.stack[^1].dynamic = true
 
-func startTuple(encoder: var AbiEncoder) =
+func startTuple*(encoder: var AbiEncoder) =
   encoder.stack.add(Tuple())
 
 func encode(encoder: var AbiEncoder, tupl: Tuple) =
@@ -67,7 +67,7 @@ func encode(encoder: var AbiEncoder, tupl: Tuple) =
   else:
     encoder.append(tupl.finish())
 
-func finishTuple(encoder: var AbiEncoder) =
+func finishTuple*(encoder: var AbiEncoder) =
   encoder.encode(encoder.stack.pop())
 
 func pad(encoder: var AbiEncoder, len: int, padding=0'u8) =
@@ -131,25 +131,25 @@ func encode(encoder: var AbiEncoder, tupl: tuple) =
     encoder.write(element)
   encoder.finishTuple()
 
+func finish(encoder: var AbiEncoder): Tuple =
+  doAssert encoder.stack.len == 1, "not all tuples were finished"
+  doAssert encoder.stack[0].bytes.len mod 32 == 0, "encoding invariant broken"
+  encoder.stack[0]
+
 func write*[T](encoder: var AbiEncoder, value: T) =
   var writer = AbiEncoder.init()
   writer.encode(value)
-  encoder.encode(writer.stack[0])
-
-func finish(encoder: var AbiEncoder): seq[byte] =
-  doAssert encoder.stack.len == 1, "not all tuples were finished"
-  doAssert encoder.stack[0].bytes.len mod 32 == 0, "encoding invariant broken"
-  encoder.stack[0].bytes
+  encoder.encode(writer.finish())
 
 func encode*[T](_: type AbiEncoder, value: T): seq[byte] =
   var encoder = AbiEncoder.init()
   encoder.write(value)
-  encoder.finish()
+  encoder.finish().bytes
 
 proc isDynamic*(_: type AbiEncoder, T: type): bool {.compileTime.} =
   var encoder = AbiEncoder.init()
-  encoder.encode(T.default)
-  encoder.stack[^1].dynamic
+  encoder.write(T.default)
+  encoder.finish().dynamic
 
 proc isStatic*(_: type AbiEncoder, T: type): bool {.compileTime.} =
   not AbiEncoder.isDynamic(T)

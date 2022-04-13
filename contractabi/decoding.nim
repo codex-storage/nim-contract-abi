@@ -43,11 +43,10 @@ func index(decoder: var AbiDecoder): var int =
 func `index=`(decoder: var AbiDecoder, value: int) =
   decoder.currentTuple.index = value
 
-func startTuple(decoder: var AbiDecoder): ?!void =
+func startTuple*(decoder: var AbiDecoder) =
   decoder.stack.add(Tuple.init(decoder.index))
-  success()
 
-func finishTuple(decoder: var AbiDecoder) =
+func finishTuple*(decoder: var AbiDecoder) =
   doAssert decoder.stack.len > 1, "unable to finish a tuple that hasn't started"
   let tupl = decoder.stack.pop()
   decoder.index = tupl.index
@@ -134,7 +133,7 @@ func decode(decoder: var AbiDecoder, T: type seq[byte]): ?!T =
 
 func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
   var tupl: T
-  ?decoder.startTuple()
+  decoder.startTuple()
   for element in tupl.fields:
     element = ?decoder.read(typeof(element))
   decoder.finishTuple()
@@ -143,7 +142,7 @@ func decode[T: tuple](decoder: var AbiDecoder, _: typedesc[T]): ?!T =
 func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
   var sequence: seq[T]
   let len = ?decoder.read(uint64)
-  ?decoder.startTuple()
+  decoder.startTuple()
   for _ in 0..<len:
     sequence.add(?decoder.read(T))
   decoder.finishTuple()
@@ -151,7 +150,7 @@ func decode[T](decoder: var AbiDecoder, _: type seq[T]): ?!seq[T] =
 
 func decode[I,T](decoder: var AbiDecoder, _: type array[I,T]): ?!array[I,T] =
   var arr: array[I, T]
-  ?decoder.startTuple()
+  decoder.startTuple()
   for i in 0..<arr.len:
     arr[i] = ?decoder.read(T)
   decoder.finishTuple()
