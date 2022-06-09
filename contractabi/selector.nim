@@ -37,6 +37,7 @@ solidityType Int256,  "int256"
 solidityType bool,    "bool"
 solidityType string,  "string"
 solidityType Address, "address"
+solidityType enum,    "uint8"
 
 func solidityType*[N: static int, T](_: type array[N, T]): string =
   when T is byte:
