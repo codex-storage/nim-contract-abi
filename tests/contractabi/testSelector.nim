@@ -4,6 +4,10 @@ import pkg/contractabi
 
 suite "function selector":
 
+  type SomeEnum = enum
+    One
+    Two
+
   test "translates nim types into solidity types":
     check solidityType(uint8) == "uint8"
     check solidityType(uint16) == "uint16"
@@ -29,6 +33,7 @@ suite "function selector":
     check solidityType(array[4, string]) == "string[4]"
     check solidityType(seq[string]) == "string[]"
     check solidityType((Address, string, bool)) == "(address,string,bool)"
+    check solidityType(SomeEnum) == "uint8"
 
   test "calculates solidity function selector":
     check $selector("transfer", (Address, UInt256)) == "0xa9059cbb"
