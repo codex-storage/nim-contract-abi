@@ -1,4 +1,5 @@
 import std/strutils
+import std/typetraits
 import pkg/nimcrypto
 import pkg/stint
 import pkg/stew/byteutils
@@ -59,6 +60,9 @@ func solidityType*(Tuple: type tuple): string =
   for parameter in Tuple.default.fields:
     names.add(solidityType(typeof parameter))
   "(" & names.join(",") & ")"
+
+func solidityType*(T: distinct type): string =
+  solidityType(distinctBase T)
 
 func signature*(function: string, Parameters: type tuple = ()): string =
   function & solidityType(Parameters)

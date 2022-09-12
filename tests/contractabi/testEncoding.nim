@@ -138,6 +138,11 @@ suite "ABI encoding":
   test "encodes strings as UTF-8 byte sequence":
     check AbiEncoder.encode("hello!☺") == AbiEncoder.encode("hello!☺".toBytes)
 
+  test "encodes distinct types as their base type":
+    type SomeDistinctType = distinct uint16
+    let value = 0xAABB'u16
+    check AbiEncoder.encode(SomeDistinctType(value)) == AbiEncoder.encode(value)
+
   test "can determine whether types are dynamic or static":
     check static AbiEncoder.isStatic(uint8)
     check static AbiEncoder.isDynamic(seq[byte])
