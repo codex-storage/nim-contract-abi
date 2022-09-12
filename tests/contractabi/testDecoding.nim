@@ -4,7 +4,8 @@ import contractabi
 import ./examples
 
 type SomeDistinctType = distinct uint16
-func `==`*(a, b: SomeDistinctType): bool {.borrow.}
+func `==`*(a, b: SomeDistinctType): bool =
+  uint16(a) == uint16(b)
 
 suite "ABI decoding":
 
