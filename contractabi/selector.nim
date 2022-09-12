@@ -61,7 +61,7 @@ func solidityType*(Tuple: type tuple): string =
     names.add(solidityType(typeof parameter))
   "(" & names.join(",") & ")"
 
-func solidityType*(T: distinct type): string =
+func solidityType*[T: distinct](_: type T): string =
   solidityType(distinctBase T)
 
 func signature*(function: string, Parameters: type tuple = ()): string =
