@@ -1,3 +1,4 @@
+import std/typetraits
 import pkg/stint
 import pkg/stew/endians2
 import pkg/stew/byteutils
@@ -158,6 +159,9 @@ func decode[I,T](decoder: var AbiDecoder, _: type array[I,T]): ?!array[I,T] =
 
 func decode(decoder: var AbiDecoder, T: type string): ?!T =
   success string.fromBytes(?decoder.read(seq[byte]))
+
+func decode[T: distinct](decoder: var AbiDecoder, _: type T): ?!T =
+  success T(?decoder.read(distinctBase T))
 
 func readOffset(decoder: var AbiDecoder): ?!int =
   let offset = ?decoder.read(uint64)

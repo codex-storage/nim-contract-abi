@@ -1,3 +1,4 @@
+import std/typetraits
 import pkg/stint
 import pkg/upraises
 import pkg/stew/byteutils
@@ -130,6 +131,10 @@ func encode(encoder: var AbiEncoder, tupl: tuple) =
   for element in tupl.fields:
     encoder.write(element)
   encoder.finishTuple()
+
+func encode(encoder: var AbiEncoder, value: distinct) =
+  type Base = distinctBase(typeof(value))
+  encoder.write(Base(value))
 
 func finish(encoder: var AbiEncoder): Tuple =
   doAssert encoder.stack.len == 1, "not all tuples were finished"

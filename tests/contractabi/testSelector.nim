@@ -35,6 +35,10 @@ suite "function selector":
     check solidityType((Address, string, bool)) == "(address,string,bool)"
     check solidityType(SomeEnum) == "uint8"
 
+  test "translates distinct type into base type":
+    type SomeDistinctType = distinct uint16
+    check solidityType(SomeDistinctType) == solidityType(uint16)
+
   test "calculates solidity function selector":
     check $selector("transfer", (Address, UInt256)) == "0xa9059cbb"
     check $selector("transferFrom", (Address, Address, UInt256)) == "0x23b872dd"

@@ -3,6 +3,9 @@ import pkg/questionable/results
 import contractabi
 import ./examples
 
+type SomeDistinctType = distinct uint16
+func `==`*(a, b: SomeDistinctType): bool {.borrow.}
+
 suite "ABI decoding":
 
   proc checkDecode[T](value: T) =
@@ -140,3 +143,6 @@ suite "ABI decoding":
 
   test "decodes strings":
     checkDecode("hello!☺")
+
+  test "decodes distinct types as their base type":
+    checkDecode(SomeDistinctType(0xAABB'u16))
