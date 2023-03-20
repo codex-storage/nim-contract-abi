@@ -193,3 +193,13 @@ func decode*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
   var value = ?decoder.decode(T)
   ?decoder.finish()
   success value
+
+func decodeRecord*(_: type AbiDecoder, bytes: seq[byte], T: type): ?!T =
+  var decoder = AbiDecoder.init(bytes)
+  var res: T
+  decoder.startTuple()
+  for value in res.fields:
+    value = ?decoder.read(typeof(value))
+  decoder.finishTuple()
+  ?decoder.finish()
+  success res
