@@ -12,6 +12,9 @@ type
   Custom3 = object
     a: uint16
     b: string
+  Custom4 = object
+    a: uint16
+    b: string
 
 func encode(encoder: var AbiEncoder, custom: Custom1) =
   encoder.write( (custom.a, custom.b) )
@@ -48,11 +51,19 @@ func decode(decoder: var AbiDecoder, T: type Custom3): ?!T =
   # missing: decoder.finishTuple()
   success custom
 
+func encode(encoder: var AbiEncoder, custom: Custom4) =
+  encoder.write( (custom.a, custom.b) )
+
+func decode(decoder: var AbiDecoder, T: type Custom4): ?!T =
+  let custom = ?AbiDecoder.decodeRecord(bytes, Custom4)
+  success custom
+
 suite "custom types":
 
   let custom1 = Custom1(a: 42, b: "ultimate answer")
   let custom2 = Custom2(a: 42, b: "ultimate answer")
   let custom3 = Custom3(a: 42, b: "ultimate answer")
+  let custom4 = Custom4(a: 42, b: "ultimate answer")
 
   test "can be encoded":
     check:
@@ -78,3 +89,7 @@ suite "custom types":
     let encoding = AbiEncoder.encode( (custom3.a, custom3.b) )
     expect Exception:
       discard AbiDecoder.decode(encoding, Custom3)
+
+  test "generic decode works":
+    let encoding = AbiEncoder.encode(custom4)
+    check AbiDecoder.decodeGeneric(encoding, Custom4) == success custom4
