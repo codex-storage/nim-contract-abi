@@ -14,4 +14,4 @@ func unsigned*(value: SomeSignedInt): SomeUnsignedInt =
   cast[typeof(value).unsigned](value)
 
 func unsigned*[bits](value: StInt[bits]): StUint[bits] =
-  value.stuint(bits)
+  cast[typeof(value).unsigned](value)
