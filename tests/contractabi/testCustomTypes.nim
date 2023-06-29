@@ -92,4 +92,4 @@ suite "custom types":
 
   test "generic decode works":
     let encoding = AbiEncoder.encode(custom4)
-    check AbiDecoder.decodeGeneric(encoding, Custom4) == success custom4
+    check AbiDecoder.decodeRecord(encoding, Custom4) == success custom4
