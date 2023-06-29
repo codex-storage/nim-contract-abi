@@ -2,6 +2,7 @@ import std/typetraits
 import pkg/stint
 import pkg/upraises
 import pkg/stew/byteutils
+import pkg/stew/endians2
 import ./integers
 import ./address
 
@@ -87,7 +88,12 @@ func padright(encoder: var AbiEncoder, bytes: openArray[byte], padding=0'u8) =
 func encode(encoder: var AbiEncoder, value: SomeUnsignedInt | StUint) =
   encoder.padleft(value.toBytesBE)
 
-func encode(encoder: var AbiEncoder, value: SomeSignedInt | StInt) =
+func encode(encoder: var AbiEncoder, value: SomeSignedInt) =
+  let bytes = value.unsigned.toBytesBE
+  let padding = if value < 0: 0xFF'u8 else: 0x00'u8
+  encoder.padleft(bytes, padding)
+
+func encode(encoder: var AbiEncoder, value: StInt) =
   let bytes = value.unsigned.toBytesBE
   let padding = if value.isNegative: 0xFF'u8 else: 0x00'u8
   encoder.padleft(bytes, padding)
