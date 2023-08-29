@@ -5,6 +5,6 @@ license = "MIT"
 
 requires "stint"
 requires "stew"
-requires "nimcrypto >= 0.5.4 & < 0.6.0"
-requires "questionable >= 0.10.0 & < 0.11.0"
+requires "nimcrypto >= 0.6.0 & < 0.7.0"
+requires "questionable >= 0.10.10 & < 0.11.0"
 requires "upraises >= 0.1.0 & < 0.2.0"

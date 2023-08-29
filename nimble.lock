@@ -1,26 +1,6 @@
 {
-  "version": 1,
+  "version": 2,
   "packages": {
-    "upraises": {
-      "version": "0.1.0",
-      "vcsRevision": "ff4f8108e44fba9b35cac535ab63d3927e8fd3c2",
-      "url": "https://github.com/markspanbroek/upraises.git",
-      "downloadMethod": "git",
-      "dependencies": [],
-      "checksums": {
-        "sha1": "a0243c8039e12d547dbb2e9c73789c16bb8bc956"
-      }
-    },
-    "nimcrypto": {
-      "version": "0.5.4",
-      "vcsRevision": "a5742a9a214ac33f91615f3862c7b099aec43b00",
-      "url": "https://github.com/cheatfate/nimcrypto",
-      "downloadMethod": "git",
-      "dependencies": [],
-      "checksums": {
-        "sha1": "f76c87707cd4e96355b8bb6ef27e7f8b0aac1e08"
-      }
-    },
     "stew": {
       "version": "0.1.0",
       "vcsRevision": "6ad35b876fb6ebe0dfee0f697af173acc47906ee",
@@ -29,16 +9,6 @@
       "dependencies": [],
       "checksums": {
         "sha1": "46d58c4feb457f3241e3347778334e325dce5268"
-      }
-    },
-    "questionable": {
-      "version": "0.10.2",
-      "vcsRevision": "6018fd43e033d5a5310faa45bcaa1b44049469a4",
-      "url": "https://github.com/status-im/questionable.git",
-      "downloadMethod": "git",
-      "dependencies": [],
-      "checksums": {
-        "sha1": "36a6c012637c7736a390e74a7f94667bca562073"
       }
     },
     "stint": {
@@ -52,6 +22,37 @@
       "checksums": {
         "sha1": "0f187a2115315ca898e5f9a30c5e506cf6057062"
       }
+    },
+    "nimcrypto": {
+      "version": "0.6.0",
+      "vcsRevision": "1c8d6e3caf3abc572136ae9a1da81730c4eb4288",
+      "url": "https://github.com/cheatfate/nimcrypto",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "da3b105ad6bd7beef25c69f03afccb5e5233d483"
+      }
+    },
+    "questionable": {
+      "version": "0.10.10",
+      "vcsRevision": "b3cf35ac450fd42c9ea83dc084f5cba2efc55da3",
+      "url": "https://github.com/markspanbroek/questionable",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "8bb23a05d7f21619010471aa009e27d3fa73d93a"
+      }
+    },
+    "upraises": {
+      "version": "0.1.0",
+      "vcsRevision": "ff4f8108e44fba9b35cac535ab63d3927e8fd3c2",
+      "url": "https://github.com/markspanbroek/upraises.git",
+      "downloadMethod": "git",
+      "dependencies": [],
+      "checksums": {
+        "sha1": "a0243c8039e12d547dbb2e9c73789c16bb8bc956"
+      }
     }
-  }
+  },
+  "tasks": {}
 }
