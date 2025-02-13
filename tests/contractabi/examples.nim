@@ -20,7 +20,7 @@ proc example*[T](_: type seq[T], len = 0..5): seq[T] =
   newSeqWith(chosenlen, T.example)
 
 proc example*(T: type StUint): T =
-  T.fromBytes(array[sizeof(T), byte].example)
+  T.fromBytesBE(array[sizeof(T), byte].example)
 
 proc example*(T: type StInt): T =
   cast[T](StUint[T.bits].example)
