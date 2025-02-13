@@ -11,7 +11,7 @@ Use the [Nimble][2] package manager to add `contractabi` to an existing project.
 Add the following to its .nimble file:
 
 ```nim
-requires "contractabi >= 0.6.0 & < 0.7.0"
+requires "contractabi >= 0.7.1 & < 0.8.0"
 ```
 
 Usage
