@@ -55,15 +55,16 @@
       }
     },
     "stint": {
-      "version": "2.0.0",
-      "vcsRevision": "3236fa68394f1e3a06e2bc34218aacdd2d675923",
+      "version": "0.8.1",
+      "vcsRevision": "1a2c661e3f50ff696b0b6692fab0d7bb2abf10cc",
       "url": "https://github.com/status-im/nim-stint",
       "downloadMethod": "git",
       "dependencies": [
-        "stew"
+        "stew",
+        "unittest2"
       ],
       "checksums": {
-        "sha1": "50744885ee1c320675078b46520268bf3c3c5d81"
+        "sha1": "fe3c8b7b0484135294b8fb3dab5b1a030a08bddc"
       }
     },
     "upraises": {
